@@ -1,0 +1,26 @@
+# Copy this file to terraform.tfvars and update with your values
+
+aws_region            = "us-east-1"
+project_name          = "devops-infrastructure"
+key_pair_name         = "your-key-pair-name"
+db_name              = "appdb"
+db_username          = "admin"
+db_password          = "your-secure-password"
+state_bucket_name    = "your-terraform-state-bucket-unique-name"
+
+environment_configs = {
+  staging = {
+    vpc_cidr             = "10.0.0.0/16"
+    public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+    private_subnet_cidrs = ["10.0.10.0/24", "10.0.20.0/24"]
+    instance_type        = "t3.micro"
+    db_instance_class    = "db.t3.micro"
+  }
+  production = {
+    vpc_cidr             = "10.1.0.0/16"
+    public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
+    private_subnet_cidrs = ["10.1.10.0/24", "10.1.20.0/24"]
+    instance_type        = "t3.small"
+    db_instance_class    = "db.t3.small"
+  }
+}
