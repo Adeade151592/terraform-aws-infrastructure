@@ -116,6 +116,8 @@ module "rds" {
   ec2_security_group = module.ec2.security_group_id
   db_instance_class  = local.db_instance_class
   db_name            = var.db_name
+  db_username        = var.db_username
+  db_password        = var.db_password
   db_secret_arn      = module.secrets.db_secret_arn
   
   tags = local.common_tags
