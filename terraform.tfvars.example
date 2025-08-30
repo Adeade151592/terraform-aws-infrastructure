@@ -1,11 +1,11 @@
 # Copy this file to terraform.tfvars and update with your values
+# DO NOT commit terraform.tfvars to Git
 
 aws_region            = "us-east-1"
-project_name          = "devops-infrastructure"
-key_pair_name         = "your-key-pair-name"
+project_name          = "secure-devops-infrastructure"
 db_name              = "appdb"
 db_username          = "admin"
-db_password          = "your-secure-password"
+# db_password          = "your-secure-password-here"  # Set via environment variable
 state_bucket_name    = "your-terraform-state-bucket-unique-name"
 
 environment_configs = {

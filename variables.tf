@@ -8,29 +8,44 @@ variable "project_name" {
   description = "Name of the project"
   type        = string
   default     = "devops-infrastructure"
-}
-
-variable "key_pair_name" {
-  description = "AWS key pair name for EC2 instances"
-  type        = string
+  
+  validation {
+    condition     = length(var.project_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.project_name))
+    error_message = "Project name must be non-empty and contain only alphanumeric characters and hyphens."
+  }
 }
 
 variable "db_name" {
   description = "Database name"
   type        = string
   default     = "appdb"
+  
+  validation {
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_]*$", var.db_name)) && length(var.db_name) <= 64
+    error_message = "Database name must start with a letter, contain only alphanumeric characters and underscores, and be max 64 characters."
+  }
 }
 
 variable "db_username" {
   description = "Database username"
   type        = string
-  default     = "admin"
+  default     = "dbadmin"
+  
+  validation {
+    condition     = length(var.db_username) > 0
+    error_message = "Database username cannot be empty."
+  }
 }
 
 variable "db_password" {
-  description = "Database password"
+  description = "Database password - set via environment variable TF_VAR_db_password"
   type        = string
   sensitive   = true
+  
+  validation {
+    condition     = length(var.db_password) >= 8 && can(regex("[A-Z]", var.db_password)) && can(regex("[a-z]", var.db_password)) && can(regex("[0-9]", var.db_password))
+    error_message = "Database password must be at least 8 characters long and contain uppercase, lowercase, and numeric characters."
+  }
 }
 
 variable "environment_configs" {
@@ -42,11 +57,21 @@ variable "environment_configs" {
     instance_type        = string
     db_instance_class    = string
   }))
+  
+  validation {
+    condition = length(var.environment_configs) > 0
+    error_message = "At least one environment configuration must be provided."
+  }
 }
 
 variable "state_bucket_name" {
   description = "S3 bucket name for Terraform state"
   type        = string
+  
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.state_bucket_name)) && length(var.state_bucket_name) >= 3 && length(var.state_bucket_name) <= 63
+    error_message = "S3 bucket name must be 3-63 characters, lowercase, start/end with alphanumeric, and contain only lowercase letters, numbers, and hyphens."
+  }
 }
 
 variable "state_lock_table_name" {

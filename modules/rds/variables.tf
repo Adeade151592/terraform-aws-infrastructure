@@ -24,15 +24,9 @@ variable "db_name" {
   type        = string
 }
 
-variable "db_username" {
-  description = "Database username"
+variable "db_secret_arn" {
+  description = "ARN of the database credentials secret in Secrets Manager"
   type        = string
-}
-
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
 }
 
 variable "tags" {
@@ -63,16 +57,38 @@ variable "allocated_storage" {
   description = "Initial allocated storage in GB"
   type        = number
   default     = 20
+  
+  validation {
+    condition     = var.allocated_storage >= 20 && var.allocated_storage <= 65536
+    error_message = "Allocated storage must be between 20 and 65536 GB."
+  }
 }
 
 variable "max_allocated_storage" {
   description = "Maximum allocated storage in GB"
   type        = number
   default     = 100
+  
+  validation {
+    condition     = var.max_allocated_storage >= var.allocated_storage
+    error_message = "Maximum allocated storage must be greater than or equal to allocated storage."
+  }
 }
 
 variable "storage_type" {
   description = "Storage type"
   type        = string
-  default     = "gp2"
+  default     = "gp3"
+}
+
+variable "skip_final_snapshot" {
+  description = "Skip final snapshot on deletion"
+  type        = bool
+  default     = false
+}
+
+variable "deletion_protection" {
+  description = "Enable deletion protection"
+  type        = bool
+  default     = true
 }

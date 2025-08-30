@@ -1,118 +1,143 @@
-# Terraform Infrastructure Module
+# Secure DevOps Infrastructure
 
-This Terraform configuration creates a complete AWS infrastructure with VPC, EC2, and RDS using modular design and best practices.
+Enterprise-grade AWS infrastructure with comprehensive security controls.
 
-## Architecture
+## 🏗️ Architecture
 
-- **VPC Module**: Creates VPC with public/private subnets, Internet Gateway, NAT Gateway
-- **EC2 Module**: Deploys EC2 instance in public subnet with security groups
-- **RDS Module**: Creates MySQL RDS instance in private subnets with restricted access
+- **VPC**: Multi-AZ with public/private subnets
+- **Security**: KMS encryption, CloudTrail, Config, VPC Flow Logs
+- **Compute**: Auto Scaling EC2 instances with ALB
+- **Database**: RDS with encryption and automated backups
+- **Monitoring**: CloudWatch alarms and SNS notifications
+- **Secrets**: AWS Secrets Manager integration
 
-## Prerequisites
+## 🔐 Security Features
 
-1. AWS CLI configured with appropriate credentials
-2. Terraform >= 1.0 installed
-3. An existing AWS key pair for EC2 access
+- ✅ All data encrypted at rest and in transit
+- ✅ Network segmentation with security groups
+- ✅ Comprehensive logging and monitoring
+- ✅ AWS Config compliance rules
+- ✅ Secrets management with rotation
+- ✅ IAM roles with least privilege
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Setup Remote State Backend
+### Prerequisites
 
-First, create the S3 bucket and DynamoDB table for remote state:
+- AWS CLI configured with appropriate permissions
+- Terraform >= 1.0
+- Bash shell
+
+### Deployment
+
+1. **Clone and setup:**
+   ```bash
+   git clone <your-repo>
+   cd terraform-infrastructure
+   ```
+
+2. **Configure variables:**
+   ```bash
+   cp terraform.tfvars.example terraform.tfvars
+   # Edit terraform.tfvars with your values
+   ```
+
+3. **Deploy securely:**
+   ```bash
+   ./deploy.sh
+   ```
+
+### Environment Variables
+
+Set sensitive variables via environment:
 
 ```bash
-# Comment out the backend block in main.tf temporarily
-terraform init
-terraform apply -target=aws_s3_bucket.terraform_state -target=aws_dynamodb_table.terraform_state_lock
+export TF_VAR_db_password="your-secure-password"
+export TF_VAR_state_bucket_name="your-unique-bucket-name"
 ```
 
-### 2. Configure Variables
+## 📁 Project Structure
 
-```bash
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
+```
+├── modules/
+│   ├── vpc/          # VPC and networking
+│   ├── security/     # Security services (CloudTrail, Config)
+│   ├── ec2/          # Compute resources
+│   ├── rds/          # Database
+│   ├── iam/          # IAM roles and policies
+│   └── secrets/      # Secrets Manager
+├── main.tf           # Main configuration
+├── variables.tf      # Variable definitions
+├── outputs.tf        # Output values
+├── terraform.tfvars.example  # Example variables
+└── deploy.sh         # Secure deployment script
 ```
 
-### 3. Initialize with Remote Backend
+## 🔒 Security Best Practices
+
+### Git Security
+- ✅ `terraform.tfvars` excluded from Git
+- ✅ `backend.hcl` excluded from Git
+- ✅ State files excluded from Git
+- ✅ Sensitive values via environment variables
+
+### AWS Security
+- ✅ Remote state with encryption and locking
+- ✅ KMS keys for all encryption
+- ✅ VPC Flow Logs enabled
+- ✅ CloudTrail for API logging
+- ✅ Config for compliance monitoring
+
+## 🛠️ Manual Commands
+
+If you prefer manual deployment:
 
 ```bash
-# Uncomment the backend block in main.tf
-terraform init
-```
+# Initialize
+terraform init -backend-config=backend.hcl
 
-### 4. Create Workspaces
-
-```bash
-# Create staging environment
-terraform workspace new staging
+# Plan
 terraform plan
+
+# Apply
 terraform apply
 
-# Create production environment
-terraform workspace new production
-terraform plan
-terraform apply
+# Destroy (when needed)
+terraform destroy
 ```
 
-## Workspace Management
-
-This configuration supports multiple environments using Terraform workspaces:
-
-- `staging`: Uses smaller instance types and CIDR 10.0.0.0/16
-- `production`: Uses larger instance types and CIDR 10.1.0.0/16
-
-Switch between workspaces:
-```bash
-terraform workspace select staging
-terraform workspace select production
-```
-
-## Security Features
-
-- EC2 instances in public subnets with restricted security groups
-- RDS instances in private subnets, accessible only from EC2
-- Encrypted RDS storage
-- S3 bucket with versioning and encryption for state files
-- DynamoDB state locking
-
-## Outputs
+## 📊 Outputs
 
 After deployment, you'll get:
-- VPC ID and CIDR
-- Subnet IDs
-- EC2 instance IP addresses
-- RDS endpoint and port
+- VPC and subnet IDs
+- Load balancer DNS name
+- Security monitoring ARNs
+- Database endpoint (sensitive)
 
-## Cleanup
+## 🆘 Troubleshooting
 
+### Common Issues
+
+1. **Backend not found**: Ensure S3 bucket and DynamoDB table exist
+2. **Permission denied**: Check AWS credentials and permissions
+3. **Resource conflicts**: Ensure unique naming across regions
+
+### Support
+
+Check AWS CloudTrail and Config for detailed logs of any issues.
+
+## 🔄 Updates
+
+To update infrastructure:
+1. Modify Terraform files
+2. Run `./deploy.sh`
+3. Review plan carefully before applying
+
+## 🧹 Cleanup
+
+To destroy all resources:
 ```bash
-terraform workspace select staging
-terraform destroy
-
-terraform workspace select production
 terraform destroy
 ```
 
-## Design Choices
-
-1. **Modular Design**: Separate modules for VPC, EC2, and RDS for reusability
-2. **Environment Variables**: Using workspace-specific configurations
-3. **Security**: Private subnets for RDS, security groups for traffic control
-4. **State Management**: Remote state with locking for team collaboration
-5. **Minimal Resources**: Cost-effective configuration suitable for development/testing
-
-## File Structure
-
-```
-terraform-infrastructure/
-├── main.tf                 # Main configuration
-├── variables.tf            # Input variables
-├── outputs.tf              # Output values
-├── backend-setup.tf        # S3/DynamoDB setup
-├── terraform.tfvars.example
-├── modules/
-│   ├── vpc/               # VPC module
-│   ├── ec2/               # EC2 module
-│   └── rds/               # RDS module
-└── README.md
-```
+**⚠️ Warning**: This will delete all infrastructure including data!

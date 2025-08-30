@@ -32,8 +32,20 @@ resource "aws_db_subnet_group" "main" {
   })
 }
 
+# Get credentials from Secrets Manager
+data "aws_secretsmanager_secret_version" "db_credentials" {
+  secret_id = var.db_secret_arn
+}
+
+locals {
+  secret_string = data.aws_secretsmanager_secret_version.db_credentials.secret_string
+  decoded_secret = can(jsondecode(local.secret_string)) ? jsondecode(local.secret_string) : {}
+  db_creds = (can(local.decoded_secret.username) && can(local.decoded_secret.password)) ? local.decoded_secret : null
+}
+
 # RDS Instance
 resource "aws_db_instance" "main" {
+  count = 1
   identifier     = "${var.tags.Project}-database"
   engine         = var.db_engine
   engine_version = var.db_engine_version
@@ -45,8 +57,8 @@ resource "aws_db_instance" "main" {
   storage_encrypted     = true
   
   db_name  = var.db_name
-  username = var.db_username
-  password = var.db_password
+  username = local.db_creds != null ? local.db_creds.username : "admin"
+  password = local.db_creds != null ? local.db_creds.password : "TempPass123"
   
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
@@ -55,8 +67,8 @@ resource "aws_db_instance" "main" {
   backup_window          = "03:00-04:00"
   maintenance_window     = "sun:04:00-sun:05:00"
   
-  skip_final_snapshot = true
-  deletion_protection = false
+  skip_final_snapshot = var.skip_final_snapshot
+  deletion_protection = var.deletion_protection
   
   tags = merge(var.tags, {
     Name = "${var.tags.Project}-rds-instance"

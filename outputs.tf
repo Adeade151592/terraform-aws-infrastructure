@@ -23,9 +23,24 @@ output "ec2_instance_id" {
   value       = module.ec2.instance_id
 }
 
-output "ec2_public_ip" {
-  description = "Public IP of the EC2 instance"
-  value       = module.ec2.public_ip
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.ec2.alb_dns_name
+}
+
+output "cloudtrail_arn" {
+  description = "ARN of the CloudTrail"
+  value       = module.security.cloudtrail_arn
+}
+
+output "config_recorder_name" {
+  description = "Name of the AWS Config recorder"
+  value       = module.security.config_recorder_name
+}
+
+output "security_alerts_topic_arn" {
+  description = "ARN of the SNS topic for security alerts"
+  value       = module.security.sns_topic_arn
 }
 
 output "ec2_private_ip" {
@@ -36,9 +51,11 @@ output "ec2_private_ip" {
 output "rds_endpoint" {
   description = "RDS instance endpoint"
   value       = module.rds.db_endpoint
+  sensitive   = true
 }
 
 output "rds_port" {
   description = "RDS instance port"
   value       = module.rds.db_port
+  sensitive   = true
 }

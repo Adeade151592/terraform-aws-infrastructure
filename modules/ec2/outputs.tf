@@ -1,16 +1,16 @@
 output "instance_id" {
-  description = "ID of the EC2 instance"
-  value       = aws_instance.main.id
+  description = "IDs of the EC2 instances"
+  value       = aws_instance.main[*].id
 }
 
-output "public_ip" {
-  description = "Public IP of the EC2 instance"
-  value       = aws_instance.main.public_ip
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = aws_lb.main.dns_name
 }
 
 output "private_ip" {
-  description = "Private IP of the EC2 instance"
-  value       = aws_instance.main.private_ip
+  description = "Private IPs of the EC2 instances"
+  value       = aws_instance.main[*].private_ip
 }
 
 output "security_group_id" {

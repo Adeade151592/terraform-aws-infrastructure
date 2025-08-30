@@ -47,21 +47,23 @@ resource "aws_subnet" "private" {
   })
 }
 
-# NAT Gateway
+# NAT Gateways (one per private subnet)
 resource "aws_eip" "nat" {
+  count  = length(var.private_subnet_cidrs)
   domain = "vpc"
   
   tags = merge(var.tags, {
-    Name = "${var.tags.Project}-nat-eip"
+    Name = "${var.tags.Project}-nat-eip-${count.index + 1}"
   })
 }
 
 resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
+  count         = length(var.private_subnet_cidrs) > 0 && length(var.public_subnet_cidrs) > 0 ? length(var.private_subnet_cidrs) : 0
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index % length(var.public_subnet_cidrs)].id
   
   tags = merge(var.tags, {
-    Name = "${var.tags.Project}-nat-gateway"
+    Name = "${var.tags.Project}-nat-gateway-${count.index + 1}"
   })
   
   depends_on = [aws_internet_gateway.main]
@@ -82,15 +84,16 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
+  count  = length(var.private_subnet_cidrs)
   vpc_id = aws_vpc.main.id
   
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main.id
+    nat_gateway_id = aws_nat_gateway.main[count.index].id
   }
   
   tags = merge(var.tags, {
-    Name = "${var.tags.Project}-private-rt"
+    Name = "${var.tags.Project}-private-rt-${count.index + 1}"
   })
 }
 
@@ -106,5 +109,20 @@ resource "aws_route_table_association" "private" {
   count = length(aws_subnet.private)
   
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private[count.index].id
+}
+
+# VPC Flow Logs
+resource "aws_flow_log" "vpc_flow_logs" {
+  count = 1
+  
+  iam_role_arn         = var.flow_logs_role_arn
+  log_destination      = var.flow_logs_group_arn
+  log_destination_type = "cloud-watch-logs"
+  traffic_type         = "ALL"
+  vpc_id               = aws_vpc.main.id
+
+  tags = merge(var.tags, {
+    Name = "${var.tags.Project}-vpc-flow-logs"
+  })
 }
