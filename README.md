@@ -53,6 +53,8 @@ Set sensitive variables via environment:
 
 ```bash
 export TF_VAR_db_password="your-secure-password"
+export TF_VAR_api_key="your-api-key-16-chars-min"
+export TF_VAR_jwt_secret="your-jwt-secret-32-chars-minimum"
 export TF_VAR_state_bucket_name="your-unique-bucket-name"
 ```
 

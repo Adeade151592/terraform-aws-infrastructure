@@ -79,3 +79,25 @@ variable "state_lock_table_name" {
   type        = string
   default     = "terraform-state-lock"
 }
+
+variable "api_key" {
+  description = "Application API key - set via environment variable TF_VAR_api_key"
+  type        = string
+  sensitive   = true
+  
+  validation {
+    condition     = length(var.api_key) >= 16
+    error_message = "API key must be at least 16 characters long."
+  }
+}
+
+variable "jwt_secret" {
+  description = "JWT secret key - set via environment variable TF_VAR_jwt_secret"
+  type        = string
+  sensitive   = true
+  
+  validation {
+    condition     = length(var.jwt_secret) >= 32
+    error_message = "JWT secret must be at least 32 characters long."
+  }
+}

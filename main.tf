@@ -66,8 +66,8 @@ module "secrets" {
   project_name = var.project_name
   db_username  = var.db_username
   db_password  = var.db_password
-  api_key      = "temp-api-key-1234567890"
-  jwt_secret   = "temp-jwt-secret-1234567890123456789012345678901234567890"
+  api_key      = var.api_key
+  jwt_secret   = var.jwt_secret
   tags         = local.common_tags
 }
 

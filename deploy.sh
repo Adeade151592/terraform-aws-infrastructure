@@ -42,6 +42,18 @@ if [ -z "$TF_VAR_db_password" ]; then
     export TF_VAR_db_password
 fi
 
+if [ -z "$TF_VAR_api_key" ]; then
+    echo -e "${YELLOW}🔑 Enter API key (will be hidden):${NC}"
+    read -s TF_VAR_api_key
+    export TF_VAR_api_key
+fi
+
+if [ -z "$TF_VAR_jwt_secret" ]; then
+    echo -e "${YELLOW}🔒 Enter JWT secret (will be hidden):${NC}"
+    read -s TF_VAR_jwt_secret
+    export TF_VAR_jwt_secret
+fi
+
 # Initialize Terraform
 echo -e "${GREEN}🔧 Initializing Terraform...${NC}"
 terraform init -backend-config=backend.hcl
