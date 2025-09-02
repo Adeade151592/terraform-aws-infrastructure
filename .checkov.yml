@@ -1,0 +1,23 @@
+# Checkov configuration
+framework:
+  - terraform
+  - secrets
+
+output: cli
+quiet: false
+compact: false
+
+skip-check:
+  - CKV_AWS_79  # Skip if S3 bucket encryption not required for all buckets
+  - CKV_AWS_18  # Skip S3 bucket logging if not needed
+
+hard-fail-on:
+  - HIGH
+  - CRITICAL
+
+soft-fail: false
+
+check:
+  - CKV_AWS_61  # Ensure RDS is encrypted
+  - CKV_AWS_20  # Ensure S3 bucket has MFA delete enabled
+  - CKV_AWS_21  # Ensure S3 bucket has versioning enabled

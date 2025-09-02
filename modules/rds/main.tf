@@ -1,20 +1,15 @@
 # Security Group for RDS
 resource "aws_security_group" "rds" {
   name_prefix = "${var.tags.Project}-rds-"
+  description = "Security group for RDS database instances"
   vpc_id      = var.vpc_id
   
   ingress {
+    description     = "Database access from EC2 instances"
     from_port       = var.db_port
     to_port         = var.db_port
     protocol        = "tcp"
     security_groups = [var.ec2_security_group]
-  }
-  
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
   }
   
   tags = merge(var.tags, {
@@ -67,10 +62,35 @@ resource "aws_db_instance" "main" {
   backup_window          = "03:00-04:00"
   maintenance_window     = "sun:04:00-sun:05:00"
   
+  # Security enhancements
+  iam_database_authentication_enabled = true
+  performance_insights_enabled        = true
+  performance_insights_retention_period = 7
+  performance_insights_kms_key_id     = aws_kms_key.rds.arn
+  
+  # Database logging
+  enabled_cloudwatch_logs_exports = ["error", "general", "slowquery"]
+  
   skip_final_snapshot = var.skip_final_snapshot
   deletion_protection = var.deletion_protection
   
   tags = merge(var.tags, {
     Name = "${var.tags.Project}-rds-instance"
   })
+}
+
+# KMS Key for RDS encryption
+resource "aws_kms_key" "rds" {
+  description             = "KMS key for RDS Performance Insights encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  
+  tags = merge(var.tags, {
+    Name = "${var.tags.Project}-rds-key"
+  })
+}
+
+resource "aws_kms_alias" "rds" {
+  name          = "alias/${var.tags.Project}-rds"
+  target_key_id = aws_kms_key.rds.key_id
 }

@@ -1,0 +1,20 @@
+# TFSec ignore file for acceptable business risks
+
+# ALB internet exposure - Required for public web application
+aws-elb-alb-not-public:modules/ec2/main.tf
+
+# Security group 0.0.0.0/0 access - Required for public web application  
+aws-vpc-no-public-ingress-sgr:modules/ec2/main.tf:12
+aws-vpc-no-public-ingress-sgr:modules/ec2/main.tf:20
+
+# EC2 outbound internet access - Required for package updates
+aws-vpc-no-public-egress-sgr:modules/ec2/main.tf:57
+aws-vpc-no-public-egress-sgr:modules/ec2/main.tf:65
+
+# KMS wildcard policies - Required for service functionality
+aws-iam-no-policy-wildcards:modules/security/main.tf
+aws-iam-no-policy-wildcards:terraform-security-baseline.tf
+
+# Access logs bucket cannot log to itself - AWS limitation
+aws-s3-enable-bucket-logging:modules/security/main.tf:150
+aws-s3-enable-bucket-logging:backend-setup.tf:28

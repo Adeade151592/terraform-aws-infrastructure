@@ -1,27 +1,31 @@
 # Security Group for ALB
 resource "aws_security_group" "alb" {
   name_prefix = "${var.tags.Project}-alb-"
+  description = "Security group for Application Load Balancer"
   vpc_id      = var.vpc_id
   
   ingress {
+    description = var.internal_alb ? "HTTP access from VPC" : "HTTP access from internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.internal_alb ? [var.vpc_cidr] : ["0.0.0.0/0"]
   }
   
   ingress {
+    description = var.internal_alb ? "HTTPS access from VPC" : "HTTPS access from internet"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.internal_alb ? [var.vpc_cidr] : ["0.0.0.0/0"]
   }
   
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP to EC2 instances"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
   
   tags = merge(var.tags, {
@@ -32,18 +36,21 @@ resource "aws_security_group" "alb" {
 # Security Group for EC2 in Private Subnet
 resource "aws_security_group" "ec2" {
   name_prefix = "${var.tags.Project}-ec2-"
+  description = "Security group for EC2 instances in private subnet"
   vpc_id      = var.vpc_id
   
   # Allow HTTP from ALB only
   ingress {
+    description     = "HTTP from ALB"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
   
-  # Outbound internet access for updates
+  # Outbound internet access for updates via NAT Gateway
   egress {
+    description = "HTTP for package updates"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -51,6 +58,7 @@ resource "aws_security_group" "ec2" {
   }
   
   egress {
+    description = "HTTPS for package updates"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -120,10 +128,10 @@ resource "aws_instance" "main" {
 # Application Load Balancer
 resource "aws_lb" "main" {
   name               = "${var.tags.Project}-alb"
-  internal           = false
+  internal           = var.internal_alb
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnet_ids
+  subnets            = var.internal_alb ? var.private_subnet_ids : var.public_subnet_ids
 
   enable_deletion_protection = false
   drop_invalid_header_fields = true
@@ -184,7 +192,7 @@ resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
   certificate_arn   = var.ssl_certificate_arn
 
   default_action {

@@ -99,10 +99,12 @@ module "ec2" {
   source = "./modules/ec2"
   
   vpc_id                  = module.vpc.vpc_id
+  vpc_cidr                = local.vpc_cidr
   public_subnet_ids       = module.vpc.public_subnet_ids
   private_subnet_ids      = module.vpc.private_subnet_ids
   instance_type           = local.instance_type
   instance_profile_name   = module.iam.ec2_instance_profile_name
+  enable_waf              = var.enable_waf
   
   tags = local.common_tags
 }

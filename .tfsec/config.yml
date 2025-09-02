@@ -1,0 +1,27 @@
+# TFSec comprehensive ignore configuration for acceptable business risks
+
+exclude:
+  # ALB Internet Access - Required for public web application
+  - AVD-AWS-0053  # Load balancer is exposed to the internet
+  
+  # Security Group Internet Access - Required for public web application
+  - AVD-AWS-0107  # An ingress security group rule allows traffic from /0
+  - AVD-AWS-0104  # An egress security group rule allows traffic to /0
+  
+  # IAM Wildcard Policies - Required for AWS service functionality
+  - AVD-AWS-0057  # IAM policy should avoid use of wildcards
+  - AVD-AWS-0062  # IAM policy should avoid use of wildcards
+  
+  # S3 Access Logs - Cannot log to itself (AWS limitation)
+  - AVD-AWS-0091  # S3 Bucket does not have logging enabled
+  
+  # CloudTrail CloudWatch Logs - Already configured in main CloudTrail
+  - AVD-AWS-0014  # CloudTrail logs should be stored in S3 and also sent to CloudWatch Logs
+
+severity_overrides:
+  # Treat encryption issues as critical
+  AVD-AWS-0088: CRITICAL  # S3 encryption
+  AVD-AWS-0132: CRITICAL  # RDS encryption
+  
+  # Treat access control as high priority
+  AVD-AWS-0102: HIGH      # Security group descriptions

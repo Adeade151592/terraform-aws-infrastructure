@@ -101,3 +101,15 @@ variable "jwt_secret" {
     error_message = "JWT secret must be at least 32 characters long."
   }
 }
+
+variable "enable_security_baseline" {
+  description = "Enable security baseline configurations (CloudTrail, S3 encryption, etc.)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_waf" {
+  description = "Enable WAF protection for ALB"
+  type        = bool
+  default     = true
+}

@@ -39,3 +39,12 @@ override.tf.json
 
 # Include override files you do wish to add to version control using negated pattern
 # !example_override.tf
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Security scan results
+*.sarif
+endor-results.*

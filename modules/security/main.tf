@@ -6,6 +6,20 @@ resource "aws_s3_bucket" "cloudtrail" {
   tags = var.tags
 }
 
+resource "aws_s3_bucket_versioning" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_logging" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  target_bucket = aws_s3_bucket.access_logs.id
+  target_prefix = "cloudtrail-access-logs/"
+}
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail" {
   bucket = aws_s3_bucket.cloudtrail.id
 
@@ -71,6 +85,11 @@ resource "aws_cloudtrail" "main" {
   s3_bucket_name                = aws_s3_bucket.cloudtrail.bucket
   cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.cloudtrail.arn}:*"
   cloud_watch_logs_role_arn     = aws_iam_role.cloudtrail_logs.arn
+  
+  # Security enhancements
+  is_multi_region_trail         = true
+  enable_log_file_validation    = true
+  kms_key_id                    = aws_kms_key.logs.arn
 
   event_selector {
     read_write_type                 = "All"
@@ -127,12 +146,63 @@ resource "aws_iam_role_policy" "cloudtrail_logs" {
   })
 }
 
+# Access Logs S3 Bucket
+resource "aws_s3_bucket" "access_logs" {
+  bucket        = "${var.project_name}-access-logs-${random_string.suffix.result}"
+  force_destroy = true
+
+  tags = var.tags
+}
+
+resource "aws_s3_bucket_versioning" "access_logs" {
+  bucket = aws_s3_bucket.access_logs.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Note: Access logs bucket cannot log to itself, this is expected
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
+  bucket = aws_s3_bucket.access_logs.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.logs.arn
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "access_logs" {
+  bucket = aws_s3_bucket.access_logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 # AWS Config S3 Bucket
 resource "aws_s3_bucket" "config" {
   bucket        = "${var.project_name}-config-${random_string.suffix.result}"
   force_destroy = true
 
   tags = var.tags
+}
+
+resource "aws_s3_bucket_versioning" "config" {
+  bucket = aws_s3_bucket.config.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_logging" "config" {
+  bucket = aws_s3_bucket.config.id
+
+  target_bucket = aws_s3_bucket.access_logs.id
+  target_prefix = "config-access-logs/"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "config" {

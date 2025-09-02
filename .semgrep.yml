@@ -1,0 +1,16 @@
+rules:
+  - terraform-security
+  - terraform-best-practice
+  - secrets
+  - security-audit
+  - owasp-top-ten
+
+exclude:
+  - "*.tfvars"
+  - ".terraform/"
+  - "*.backup"
+
+severity:
+  - ERROR
+  - WARNING
+  - INFO

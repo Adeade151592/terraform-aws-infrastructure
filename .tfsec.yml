@@ -1,0 +1,7 @@
+# TFSec configuration
+config_file: .tfsec/config.yml
+
+include_passed: false
+include_ignored: false
+
+custom_check_dir: .tfsec/custom

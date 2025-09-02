@@ -1,0 +1,21 @@
+api: https://api.endorlabs.com
+namespace: default
+
+scan:
+  # Enable dependency scanning
+  dependencies: true
+  # Enable secrets scanning
+  secrets: true
+  # Enable license compliance
+  licenses: true
+  # Enable vulnerability scanning
+  vulnerabilities: true
+
+output:
+  format: sarif
+  file: endor-results.sarif
+
+exclude:
+  - ".terraform/"
+  - "*.tfvars"
+  - "*.backup"

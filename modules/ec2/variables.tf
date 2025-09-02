@@ -59,6 +59,28 @@ variable "ssl_certificate_arn" {
   }
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block of the VPC"
+  type        = string
+  
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "VPC CIDR must be a valid CIDR block."
+  }
+}
+
+variable "internal_alb" {
+  description = "Whether to make ALB internal (true) or internet-facing (false)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_waf" {
+  description = "Enable WAF protection for ALB"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
